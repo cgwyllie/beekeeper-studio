@@ -563,6 +563,11 @@ import { FavoriteQuery } from '@/common/appdb/models/favorite_query'
               name: "Format Query",
               slug: 'format',
               handler: this.formatSql
+            },
+            {
+              name: "Explain Query",
+              slug: 'explain',
+              handler: this.explainCurrentQuery
             }
           ],
           event,
@@ -749,6 +754,19 @@ import { FavoriteQuery } from '@/common/appdb/models/favorite_query'
       formatSql() {
         this.editor.setValue(format(this.editor.getValue(), { language: FormatterDialect(this.dialect) }))
         this.selectEditor()
+      },
+      async explainCurrentQuery() {
+        if (null === this.currentlySelectedQuery) {
+          return;
+        }
+
+        // TODO:
+        // - Some kind of strategised EXPLAIN SQL generators (lives in connection code?)
+        // - Strategised views for each type?
+        const explainSql = `EXPLAIN QUERY PLAN ${this.currentlySelectedQuery.text}`;
+        const q = this.connection.query(explainSql);
+        const results = await q.execute();
+        this.results = Object.freeze(results);
       },
       toggleComment() {
         this.editor.execCommand('toggleComment')
